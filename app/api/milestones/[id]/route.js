@@ -2,7 +2,7 @@
 // DELETE /api/milestones/:id — remove
 
 import { sql } from "@/lib/db";
-import { requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { validateMilestoneInput } from "@/lib/validators/milestones";
 
@@ -25,7 +25,7 @@ async function loadMilestoneWithProject(milestoneId) {
 }
 
 export async function PATCH(request, { params }) {
-  const auth = await requireRole(request, "admin", "manager");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
   const { id: idParam } = await params;
   const id = String(idParam);
@@ -92,7 +92,7 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const auth = await requireRole(request, "admin", "manager");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
   const { id: idParam } = await params;
   const id = String(idParam);

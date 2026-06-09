@@ -398,7 +398,7 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const auth = await requireRole(request, "admin", "manager");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
   const { id: idParam } = await params;
   const id = String(idParam);

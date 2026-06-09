@@ -52,9 +52,12 @@ function useDebounced(value, delay = 300) {
 
 export default function Projects() {
   const { user } = useAuth();
-  const canCreate = user?.role === "admin" || user?.role === "manager";
-  const canEdit = canCreate;
-  const canDelete = user?.role === "admin";
+  // CRUD is open to any signed-in user. We still hold onto `user` so we
+  // can hide actions when nobody is logged in (which shouldn't happen on
+  // this route, but defends against a transient AuthProvider state).
+  const canCreate = !!user;
+  const canEdit = !!user;
+  const canDelete = !!user;
 
   // Filters
   const [status, setStatus] = useState("All");

@@ -11,7 +11,6 @@ import {
   Users as UsersIcon,
   Briefcase,
   Clock,
-  ShieldCheck,
 } from "lucide-react";
 import PageHeader from "@/components/ui/PageHeader";
 import SearchInput from "@/components/ui/SearchInput";
@@ -38,8 +37,9 @@ function useDebounced(value, ms = 250) {
 
 export default function Teams() {
   const { user } = useAuth();
-  const canManage = user?.role === "admin" || user?.role === "manager";
-  const canDelete = user?.role === "admin";
+  // Team CRUD is open to any signed-in user.
+  const canManage = !!user;
+  const canDelete = !!user;
 
   const [search, setSearch] = useState("");
   const debounced = useDebounced(search);
@@ -131,17 +131,6 @@ export default function Teams() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-
-        {canManage && items.length > 0 && (
-          <div className="flex items-start gap-2 px-3 py-2 rounded-md border border-secondary bg-secondary/30 text-xs text-secondary-foreground">
-            <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" strokeWidth={2.4} />
-            <span>
-              {canDelete
-                ? "As an admin you can create, edit, and delete teams; managers can do everything except delete."
-                : "As a manager you can create and edit teams; deleting a team is admin-only."}
-            </span>
-          </div>
-        )}
 
         {actionError && (
           <div className="p-3 rounded-md border border-red-500/30 bg-red-500/10 text-sm text-red-300">

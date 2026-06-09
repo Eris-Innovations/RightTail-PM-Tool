@@ -1,15 +1,15 @@
 // PATCH /api/teams/:id/leader — promote a member to leader (or `null`
-// to vacate). Admin/manager only.
+// to vacate). Open to any signed-in user.
 
 import { sql } from "@/lib/db";
-import { requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { TEAM_LIST_COLUMNS } from "../../route";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(request, { params }) {
-  const auth = await requireRole(request, "admin", "manager");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
   const { id: idParam } = await params;
   const id = String(idParam);

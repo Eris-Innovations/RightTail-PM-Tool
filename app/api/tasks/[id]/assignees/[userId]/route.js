@@ -1,8 +1,7 @@
 // DELETE /api/tasks/:id/assignees/:userId
 //
-// Admins/managers can remove anyone; everyone else may only remove
-// themselves. Removing the lead also clears tasks.assignee_id to
-// preserve the invariant.
+// Any signed-in user may remove an assignment. Removing the lead also
+// clears tasks.assignee_id to preserve the invariant.
 
 import { sql } from "@/lib/db";
 import { requireUser } from "@/lib/auth/requireUser";
@@ -33,18 +32,6 @@ export async function DELETE(request, { params }) {
       return Response.json(
         { error: "Cannot manage assignees on a task in an archived project." },
         { status: 409 }
-      );
-    }
-
-    const isManager = auth.user.role === "admin" || auth.user.role === "manager";
-    const isSelf = auth.user.id === userId;
-    if (!isManager && !isSelf) {
-      return Response.json(
-        {
-          error:
-            "Only admins, managers, or the assignee themselves can remove an assignment.",
-        },
-        { status: 403 }
       );
     }
 

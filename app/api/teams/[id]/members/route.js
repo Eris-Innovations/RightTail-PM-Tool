@@ -1,13 +1,13 @@
-// POST /api/teams/:id/members — add a member (admin/manager).
+// POST /api/teams/:id/members — add a member (any signed-in user).
 
 import { sql } from "@/lib/db";
-import { requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request, { params }) {
-  const auth = await requireRole(request, "admin", "manager");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
   const { id: idParam } = await params;
   const id = String(idParam);

@@ -69,7 +69,12 @@ export default function Users() {
   const [roleError, setRoleError] = useState(null);
 
   const { user: currentUser } = useAuth();
+  // Open user CRUD to any signed-in account. We still keep `isAdmin`
+  // for the truly admin-only operations (role change, hard delete,
+  // password reset) because those are privilege-escalation territory.
   const isAdmin = currentUser?.role === "admin";
+  const canCreate = !!currentUser;
+  const canEdit = !!currentUser;
 
   const { data, error, loading, refetch } = useApi(api.users);
   const items = data?.items ?? [];
@@ -179,9 +184,7 @@ export default function Users() {
     `${role}|${status}|${department}|${query}`
   );
 
-  const headerCols = isAdmin
-    ? ["User", "Email", "Role", "Status", "Department", "Joined", ""]
-    : ["User", "Email", "Role", "Status", "Department", "Joined"];
+  const headerCols = ["User", "Email", "Role", "Status", "Department", "Joined", ""];
 
   return (
     <>
@@ -189,7 +192,7 @@ export default function Users() {
         title="Users"
         subtitle="Manage team members, roles, departments, and access."
       >
-        {isAdmin && (
+        {canCreate && (
           <button
             type="button"
             onClick={() => setCreateOpen(true)}
@@ -542,26 +545,26 @@ export default function Users() {
                         <td className="px-4 py-3 text-sm text-muted-foreground whitespace-nowrap">
                           {formatDate(u.created_at)}
                         </td>
-                        {isAdmin && (
-                          <td className="px-4 py-3 text-right whitespace-nowrap">
-                              <RowActionMenu
-                              items={[
-                                {
-                                  label: "View profile",
-                                  icon: Eye,
-                                  onClick: () => setDetailTargetId(u.id),
-                                },
-                                {
-                                  label: "Edit user",
-                                  icon: Pencil,
-                                  onClick: () => setEditTarget(u),
-                                },
-                                {
-                                  label: "Reset password",
-                                  icon: KeyRound,
-                                  onClick: () => setResetTarget(u),
-                                },
-                                u.status === "Active"
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          <RowActionMenu
+                            items={[
+                              {
+                                label: "View profile",
+                                icon: Eye,
+                                onClick: () => setDetailTargetId(u.id),
+                              },
+                              canEdit && {
+                                label: "Edit user",
+                                icon: Pencil,
+                                onClick: () => setEditTarget(u),
+                              },
+                              isAdmin && {
+                                label: "Reset password",
+                                icon: KeyRound,
+                                onClick: () => setResetTarget(u),
+                              },
+                              canEdit &&
+                                (u.status === "Active"
                                   ? {
                                       label: isSelf
                                         ? "Deactivate (not allowed)"
@@ -574,20 +577,19 @@ export default function Users() {
                                       label: "Activate",
                                       icon: UserCheck,
                                       onClick: () => setActivateTarget(u),
-                                    },
-                                {
-                                  label: isSelf
-                                    ? "Delete (not allowed)"
-                                    : "Delete user",
-                                  icon: Trash2,
-                                  tone: "danger",
-                                  onClick: () => setDeleteTarget(u),
-                                  disabled: isSelf,
-                                },
-                              ]}
-                            />
-                          </td>
-                        )}
+                                    }),
+                              isAdmin && {
+                                label: isSelf
+                                  ? "Delete (not allowed)"
+                                  : "Delete user",
+                                icon: Trash2,
+                                tone: "danger",
+                                onClick: () => setDeleteTarget(u),
+                                disabled: isSelf,
+                              },
+                            ]}
+                          />
+                        </td>
                       </tr>
                     );
                   })}
@@ -598,13 +600,9 @@ export default function Users() {
                         <EmptyState
                           icon={UsersIcon}
                           title="No users yet"
-                          description={
-                            isAdmin
-                              ? 'Click "Add User" to invite the first team member.'
-                              : "Workspace is empty."
-                          }
+                          description='Click "Add User" to invite the first team member.'
                           action={
-                            isAdmin ? (
+                            canCreate ? (
                               <button
                                 type="button"
                                 onClick={() => setCreateOpen(true)}

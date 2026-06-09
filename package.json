@@ -17,7 +17,9 @@
     "test:uat": "node scripts/uat.mjs",
     "test:auth": "node scripts/test-auth.mjs",
     "seed:user": "node scripts/seed-user.mjs",
-    "confirm:user": "node scripts/confirm-user.mjs"
+    "confirm:user": "node scripts/confirm-user.mjs",
+    "user:list": "node scripts/set-role.mjs --list",
+    "user:set-role": "node scripts/set-role.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.5.2",

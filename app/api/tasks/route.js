@@ -113,7 +113,7 @@ export async function GET(request) {
 }
 
 export async function POST(request) {
-  const auth = await requireRole(request, "admin", "manager");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
 
   try {

@@ -1,17 +1,17 @@
-// DELETE /api/teams/:id/members/:userId — remove a member (admin/manager).
+// DELETE /api/teams/:id/members/:userId — remove a member (any signed-in user).
 //
 // Removing a member also strips them from the leader slot if they held
 // it — otherwise the team would point at a leader who isn't on the
 // roster.
 
 import { sql } from "@/lib/db";
-import { requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 
 export const dynamic = "force-dynamic";
 
 export async function DELETE(request, { params }) {
-  const auth = await requireRole(request, "admin", "manager");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
   const { id: idParam, userId: userIdParam } = await params;
   const id = String(idParam);

@@ -55,7 +55,9 @@ function isOverdue(t) {
 
 export default function Tasks() {
   const { user } = useAuth();
-  const canManage = user?.role === "admin" || user?.role === "manager";
+  // Open task CRUD to any signed-in user. We still guard against an
+  // un-resolved AuthProvider by requiring `user` to be truthy.
+  const canManage = !!user;
 
   // Filters
   const [status, setStatus] = useState("All");
