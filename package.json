@@ -1,0 +1,40 @@
+{
+  "name": "right-tail",
+  "private": true,
+  "version": "0.2.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:migrate": "node scripts/db/migrate.mjs",
+    "db:clear": "node scripts/db/clear.mjs",
+    "db:seed:demo": "node scripts/db/seed.mjs",
+    "test:regression": "node scripts/regression.mjs",
+    "test:uat": "node scripts/uat.mjs",
+    "test:auth": "node scripts/test-auth.mjs",
+    "seed:user": "node scripts/seed-user.mjs",
+    "confirm:user": "node scripts/confirm-user.mjs"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.107.0",
+    "dotenv": "^16.4.7",
+    "lucide-react": "^0.469.0",
+    "next": "^14.2.20",
+    "postgres": "^3.4.9",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.0.0"
+  }
+}

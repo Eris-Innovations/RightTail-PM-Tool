@@ -1,0 +1,38 @@
+node_modules
+.next
+out
+dist
+dist-ssr
+*.local
+next-env.d.ts
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Cached credentials produced by scripts/test-auth.mjs (Supabase rate-limits
+# signups, so re-runs reuse the previously-created test user instead of
+# burning a fresh one). Contains a plaintext throwaway password.
+scripts/.auth-test-creds.json
+
+.vercel

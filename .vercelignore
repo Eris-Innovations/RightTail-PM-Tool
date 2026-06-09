@@ -1,0 +1,16 @@
+# Files Vercel CLI should NOT upload with `vercel deploy`.
+# Env vars belong in the Vercel dashboard (Settings -> Environment
+# Variables), not bundled into the source. Keeping .env here means a
+# subsequent GitHub-triggered deploy won't silently regress because
+# the local .env happens to be uploaded.
+.env
+.env.local
+.env.*.local
+
+# Local-only helpers.
+scripts/.auth-test-creds.json
+.vercel/env-snapshot
+
+# Things `npm run build` will regenerate.
+.next
+node_modules
