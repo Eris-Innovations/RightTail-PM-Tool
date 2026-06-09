@@ -1,5 +1,21 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "regions": ["sin1"]
+  "regions": ["sin1"],
+  "functions": {
+    "app/api/**/route.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "app/api/notifications/run-deadline-reminders/route.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/notifications/run-deadline-reminders?days=3",
+      "schedule": "0 8 * * *"
+    }
+  ]
 }

@@ -195,18 +195,79 @@ Domain entities:
 
 ## Deploying to Vercel
 
-1. Import the repo on Vercel.
-2. Set the same env vars from your `.env` in **Project Settings →
-   Environment Variables** (don't forget `SUPABASE_SERVICE_ROLE_KEY` —
-   server-only).
-3. `npm run db:migrate` against your production `DATABASE_URL` once
-   before the first deploy.
-4. (Optional) Wire `/api/notifications/run-deadline-reminders` to a
-   daily Vercel Cron with `?days=3`. Admin/manager role required.
+The project is a single Next.js 14 app — frontend pages, backend API
+(Route Handlers under `app/api/**`), and middleware all ship in one
+deployable unit. There is no separate server to host. Supabase
+provides the managed Postgres database and auth.
 
-The serverless-friendly Postgres pool sizing in `lib/db.js` will
-auto-collapse to `max: 1, idle_timeout: 5s` when it detects the
-`VERCEL` env var.
+### 1. Prepare Supabase
+
+1. Create a Supabase project (Postgres + Auth are bundled).
+2. Copy the **transaction pooler** connection string from
+   *Project Settings → Database → Connection string → Transaction*
+   (port `6543`). Percent-encode any reserved characters in the
+   password (`#`, `$`, `!`, `@`, …).
+3. From *Project Settings → API* grab:
+   - The project URL (`https://<ref>.supabase.co`)
+   - The publishable (anon) key
+   - The service-role key (server-only; never expose to the browser)
+
+### 2. Run the schema migration once
+
+```bash
+DATABASE_URL='<your prod pooler url>' npm run db:migrate
+```
+
+The migration is idempotent (`CREATE TABLE IF NOT EXISTS` everywhere),
+so re-running it on later deploys is safe.
+
+### 3. Import the repo on Vercel
+
+Either click **Add New… → Project** in the dashboard, or run
+`vercel link` + `vercel` from the project root. Vercel auto-detects
+Next.js — no overrides needed. The framework, region, function memory,
+function timeouts, and cron schedule are all declared in
+[`vercel.json`](./vercel.json).
+
+### 4. Configure environment variables
+
+In **Project Settings → Environment Variables** add:
+
+| Name                                   | Scope                                  | Notes                                                                       |
+| -------------------------------------- | -------------------------------------- | --------------------------------------------------------------------------- |
+| `DATABASE_URL`                         | Production, Preview, Development       | Supabase transaction pooler URL (port 6543).                                |
+| `NEXT_PUBLIC_SUPABASE_URL`             | Production, Preview, Development       | Supabase project URL. Inlined at build time.                                |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Production, Preview, Development       | Browser-safe anon/publishable key.                                          |
+| `SUPABASE_SERVICE_ROLE_KEY`            | Production, Preview                    | Admin key. Never expose to client. Required by `/api/auth/signup`.          |
+| `CRON_SECRET`                          | Production                             | Random string (e.g. `openssl rand -hex 32`). Authenticates the daily cron.  |
+| `ACTIVE_USER_WINDOW_DAYS` (optional)   | as needed                              | Default 30.                                                                 |
+| `UPCOMING_DEADLINE_DAYS` (optional)    | as needed                              | Default 14.                                                                 |
+| `MAIL_DRIVER` (optional)               | as needed                              | `console` (default), `off`, or future driver.                               |
+
+Re-deploy after adding env vars so they're picked up by the build.
+
+### 5. Daily deadline reminders (Vercel Cron)
+
+`vercel.json` already wires a daily cron that hits
+`/api/notifications/run-deadline-reminders?days=3` at `08:00 UTC`. The
+route accepts either a logged-in admin/manager session **or** an
+`Authorization: Bearer ${CRON_SECRET}` header — Vercel Cron sends that
+header automatically once `CRON_SECRET` is set on the project.
+
+Crons run only on the Production deployment. The Hobby plan allows
+one cron per project, which this configuration respects.
+
+### Notes on the serverless runtime
+
+- The Postgres pool in `lib/db.js` detects the `VERCEL` env var and
+  shrinks to `max: 1, idle_timeout: 5s` — one connection per function
+  instance, keeping you well under Supabase's pooler cap.
+- `postgres` is listed in `experimental.serverComponentsExternalPackages`
+  inside `next.config.mjs` so it's never pulled into the Edge bundle.
+- Middleware (`middleware.js`) runs on the Edge runtime and only
+  touches Supabase Auth cookies — no Postgres access there.
+- All `app/api/**` route handlers are explicitly `dynamic = "force-dynamic"`
+  so Vercel never tries to statically pre-render them.
 
 ---
 

@@ -1,4 +1,4 @@
-// POST /api/notifications/run-deadline-reminders?days=N
+// GET/POST /api/notifications/run-deadline-reminders?days=N
 //
 // Designed to be called by an external scheduler (Vercel Cron, GitHub
 // Actions, k8s CronJob, etc.) once a day. Sends one DEADLINE_REMINDER
@@ -7,7 +7,10 @@
 // the notifications table makes re-invoking on the same day a no-op
 // for already-notified pairs.
 //
-// Admin/manager only — operational tool, not a user-facing action.
+// Auth:
+//   - Either an admin/manager user session (operational tool), OR
+//   - `Authorization: Bearer ${CRON_SECRET}` when CRON_SECRET is set
+//     (Vercel Cron injects this header automatically).
 
 import { sql } from "@/lib/db";
 import { requireRole } from "@/lib/auth/requireUser";
@@ -17,9 +20,19 @@ import { ENTITY_TYPES } from "@/lib/services/activityLog";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Bumped from the default to allow batches.
 
-export async function POST(request) {
-  const auth = await requireRole(request, "admin", "manager");
-  if (auth instanceof Response) return auth;
+async function handle(request) {
+  // Allow a configured CRON_SECRET to bypass the admin/manager check.
+  // Vercel Cron sends `Authorization: Bearer ${CRON_SECRET}` on every
+  // invocation when the env var is set in the project settings.
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get("authorization") || "";
+  const isCron =
+    Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;
+
+  if (!isCron) {
+    const auth = await requireRole(request, "admin", "manager");
+    if (auth instanceof Response) return auth;
+  }
 
   try {
     const sp = new URL(request.url).searchParams;
@@ -71,3 +84,6 @@ export async function POST(request) {
     return Response.json({ error: err.message }, { status: 500 });
   }
 }
+
+export const GET = handle;
+export const POST = handle;
