@@ -8,12 +8,12 @@
 // for already-notified pairs.
 //
 // Auth:
-//   - Either an admin/manager user session (operational tool), OR
+//   - Any signed-in user (operational tool open to all members), OR
 //   - `Authorization: Bearer ${CRON_SECRET}` when CRON_SECRET is set
 //     (Vercel Cron injects this header automatically).
 
 import { sql } from "@/lib/db";
-import { requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { notify, NOTIFICATION_TYPES } from "@/lib/services/notifications";
 import { ENTITY_TYPES } from "@/lib/services/activityLog";
 
@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Bumped from the default to allow batches.
 
 async function handle(request) {
-  // Allow a configured CRON_SECRET to bypass the admin/manager check.
+  // Allow a configured CRON_SECRET to bypass the user-session check.
   // Vercel Cron sends `Authorization: Bearer ${CRON_SECRET}` on every
   // invocation when the env var is set in the project settings.
   const cronSecret = process.env.CRON_SECRET;
@@ -30,7 +30,7 @@ async function handle(request) {
     Boolean(cronSecret) && authHeader === `Bearer ${cronSecret}`;
 
   if (!isCron) {
-    const auth = await requireRole(request, "admin", "manager");
+    const auth = await requireUser(request);
     if (auth instanceof Response) return auth;
   }
 

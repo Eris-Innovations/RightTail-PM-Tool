@@ -13,11 +13,13 @@ import FilterChip from "@/components/ui/FilterChip";
 import ActivityItem from "@/components/activity/ActivityItem";
 import Pagination from "@/components/ui/Pagination";
 import EmptyState from "@/components/ui/EmptyState";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { api } from "@/lib/api";
 import { useApi } from "@/lib/hooks/useApi";
 import { usePagination } from "@/lib/hooks/usePagination";
 import { formatDate, timeAgo } from "@/lib/formatters";
 import { getActivityIcon } from "@/lib/activityIcon";
+import { useAuth } from "@/lib/auth/AuthProvider";
 
 function useDebounced(value, ms = 250) {
   const [v, setV] = useState(value);
@@ -65,6 +67,11 @@ function groupByDay(items) {
 }
 
 export default function ActivityLog() {
+  const { user } = useAuth();
+  // Any signed-in user can prune the activity log. We still defend
+  // against an un-resolved AuthProvider state by requiring `user`.
+  const canDelete = !!user;
+
   const [tone, setTone] = useState("All");
   const [entityType, setEntityType] = useState("all");
   const [actorId, setActorId] = useState("");
@@ -73,6 +80,8 @@ export default function ActivityLog() {
   const [until, setUntil] = useState("");
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounced(query, 250);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [actionError, setActionError] = useState(null);
 
   // Server-side filters (everything except `tone` which is local + cheap
   // since we already render every loaded row).
@@ -89,8 +98,20 @@ export default function ActivityLog() {
     [entityType, actorId, action, since, until, debouncedQuery]
   );
   const fetcher = useMemo(() => () => api.activity(queryParams), [queryParams]);
-  const { data, error, loading } = useApi(fetcher);
+  const { data, error, loading, refetch } = useApi(fetcher);
   const items = data?.items ?? [];
+
+  async function handleDelete() {
+    if (!deleteTarget) return;
+    setActionError(null);
+    try {
+      await api.deleteActivity(deleteTarget.id);
+      refetch();
+    } catch (err) {
+      setActionError(err.message || "Could not delete activity entry.");
+      throw err;
+    }
+  }
 
   // The filter dropdowns only need to refresh when activity is mutated,
   // which is rare relative to filter clicks — so we let it lazy-load once.
@@ -146,6 +167,25 @@ export default function ActivityLog() {
       <PageHeader
         title="Activity Log"
         subtitle="Full audit trail of every login, change, and lifecycle event."
+      />
+
+      <ConfirmDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        tone="danger"
+        title="Delete activity entry?"
+        confirmLabel="Delete entry"
+        message={
+          <>
+            Remove this audit record? It cannot be recovered.
+            {deleteTarget?.message && (
+              <div className="mt-2 px-3 py-2 rounded-md bg-input/60 border border-border text-xs text-muted-foreground italic line-clamp-3">
+                “{deleteTarget.message}”
+              </div>
+            )}
+          </>
+        }
       />
 
       <div className="px-8 py-6 flex flex-col gap-5">
@@ -279,6 +319,20 @@ export default function ActivityLog() {
           )}
         </div>
 
+        {actionError && (
+          <div className="p-3 rounded-md border border-red-500/30 bg-red-500/10 text-sm text-red-300 flex items-start justify-between gap-3">
+            <span>{actionError}</span>
+            <button
+              type="button"
+              onClick={() => setActionError(null)}
+              className="text-red-300 hover:text-red-100"
+              aria-label="Dismiss"
+            >
+              <X className="w-3.5 h-3.5" strokeWidth={2.6} />
+            </button>
+          </div>
+        )}
+
         {error && (
           <div className="p-4 rounded-md border border-red-500/30 bg-red-500/10 text-sm text-red-300">
             <div className="font-semibold mb-1">
@@ -338,6 +392,15 @@ export default function ActivityLog() {
                           )
                         }
                         time={timeAgo(a.created_at)}
+                        onDelete={
+                          canDelete
+                            ? () =>
+                                setDeleteTarget({
+                                  id: a.id,
+                                  message: a.message,
+                                })
+                            : undefined
+                        }
                       />
                     </div>
                   ))}
