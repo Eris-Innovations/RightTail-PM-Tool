@@ -265,18 +265,18 @@ export default function Teams() {
                               icon: Eye,
                               onClick: () => setDetailTargetId(t.id),
                             },
-                            canManage && {
+                            {
                               label: "Edit team",
                               icon: Pencil,
                               onClick: () => setEditTarget(t),
                             },
-                            canDelete && {
+                            {
                               label: "Delete team",
                               icon: Trash2,
                               tone: "danger",
                               onClick: () => setDeleteTarget(t),
                             },
-                          ].filter(Boolean)}
+                          ]}
                         />
                       </td>
                     </tr>

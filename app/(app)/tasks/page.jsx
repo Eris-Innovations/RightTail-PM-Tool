@@ -390,7 +390,7 @@ export default function Tasks() {
                       colSpan={9}
                       className="px-4 py-10 text-center text-sm text-muted-foreground"
                     >
-                      Loading tasks from Neon…
+                      Loading…
                     </td>
                   </tr>
                 )}
@@ -398,7 +398,6 @@ export default function Tasks() {
                   paged.map((t) => {
                     const overdue = isOverdue(t);
                     const isMine = t.assignee_id === user?.id;
-                    const canEditThis = canManage || isMine;
                     return (
                       <tr
                         key={t.id}
@@ -514,22 +513,22 @@ export default function Tasks() {
                                 icon: Eye,
                                 onClick: () => setDetailTargetId(t.id),
                               },
-                              canEditThis && {
-                                label: canManage ? "Edit" : "Update progress",
+                              {
+                                label: "Edit",
                                 icon: Pencil,
                                 onClick: () => setEditTarget(t),
                               },
-                              canEditThis && t.status !== "Done" && {
+                              t.status !== "Done" && {
                                 label: "Mark complete",
                                 icon: CheckCircle2,
                                 onClick: () => quickStatusChange(t, "Done"),
                               },
-                              canEditThis && t.status === "Done" && {
+                              t.status === "Done" && {
                                 label: "Reopen task",
                                 icon: RotateCcw,
                                 onClick: () => quickStatusChange(t, "To Do"),
                               },
-                              canManage && {
+                              {
                                 label: "Delete",
                                 icon: Trash2,
                                 tone: "danger",

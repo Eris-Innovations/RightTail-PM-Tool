@@ -52,12 +52,9 @@ function useDebounced(value, delay = 300) {
 
 export default function Projects() {
   const { user } = useAuth();
-  // CRUD is open to any signed-in user. We still hold onto `user` so we
-  // can hide actions when nobody is logged in (which shouldn't happen on
-  // this route, but defends against a transient AuthProvider state).
+  // CRUD is open to any signed-in user. We only use `user` for the
+  // "New Project" button visibility; row actions are always shown.
   const canCreate = !!user;
-  const canEdit = !!user;
-  const canDelete = !!user;
 
   // Filters
   const [status, setStatus] = useState("All");
@@ -418,7 +415,7 @@ export default function Projects() {
                       colSpan={8}
                       className="px-4 py-10 text-center text-sm text-muted-foreground"
                     >
-                      Loading projects from Neon…
+                      Loading…
                     </td>
                   </tr>
                 )}
@@ -519,25 +516,25 @@ export default function Projects() {
                                 icon: Eye,
                                 onClick: () => setDetailTargetId(p.id),
                               },
-                              canEdit && !archived && {
+                              !archived && {
                                 label: "Edit",
                                 icon: Pencil,
                                 onClick: () => setEditTarget(p),
                               },
-                              canEdit && !archived && {
+                              !archived && {
                                 label: "Archive",
                                 icon: Archive,
                                 tone: "warning",
                                 onClick: () =>
                                   setArchiveTarget({ id: p.id, name: p.name }),
                               },
-                              canEdit && archived && {
+                              archived && {
                                 label: "Restore",
                                 icon: ArchiveRestore,
                                 onClick: () =>
                                   setRestoreTarget({ id: p.id, name: p.name }),
                               },
-                              canDelete && {
+                              {
                                 label: "Delete forever",
                                 icon: Trash2,
                                 tone: "danger",

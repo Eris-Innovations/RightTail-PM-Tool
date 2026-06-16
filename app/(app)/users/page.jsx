@@ -432,7 +432,7 @@ export default function Users() {
                       colSpan={headerCols.length}
                       className="px-4 py-10 text-center text-sm text-muted-foreground"
                     >
-                      Loading users from Neon…
+                      Loading…
                     </td>
                   </tr>
                 )}
@@ -553,32 +553,31 @@ export default function Users() {
                                 icon: Eye,
                                 onClick: () => setDetailTargetId(u.id),
                               },
-                              canEdit && {
+                              {
                                 label: "Edit user",
                                 icon: Pencil,
                                 onClick: () => setEditTarget(u),
                               },
-                              canEdit && {
+                              {
                                 label: "Reset password",
                                 icon: KeyRound,
                                 onClick: () => setResetTarget(u),
                               },
-                              canEdit &&
-                                (u.status === "Active"
-                                  ? {
-                                      label: isSelf
-                                        ? "Deactivate (not allowed)"
-                                        : "Deactivate",
-                                      icon: UserX,
-                                      onClick: () => setDeactivateTarget(u),
-                                      disabled: isSelf,
-                                    }
-                                  : {
-                                      label: "Activate",
-                                      icon: UserCheck,
-                                      onClick: () => setActivateTarget(u),
-                                    }),
-                              canEdit && {
+                              u.status === "Active"
+                                ? {
+                                    label: isSelf
+                                      ? "Deactivate (not allowed)"
+                                      : "Deactivate",
+                                    icon: UserX,
+                                    onClick: () => setDeactivateTarget(u),
+                                    disabled: isSelf,
+                                  }
+                                : {
+                                    label: "Activate",
+                                    icon: UserCheck,
+                                    onClick: () => setActivateTarget(u),
+                                  },
+                              {
                                 label: isSelf
                                   ? "Delete (not allowed)"
                                   : "Delete user",

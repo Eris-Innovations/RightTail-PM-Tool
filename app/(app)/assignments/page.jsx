@@ -265,7 +265,7 @@ export default function TaskAssignments() {
                       colSpan={8}
                       className="px-4 py-10 text-center text-sm text-muted-foreground"
                     >
-                      Loading assignments from Neon…
+                      Loading…
                     </td>
                   </tr>
                 )}
