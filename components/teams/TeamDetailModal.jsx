@@ -166,7 +166,7 @@ function WorkloadBar({ entry, peak }) {
 
 export default function TeamDetailModal({ open, onClose, teamId }) {
   const { user } = useAuth();
-  const canManage = user?.role === "admin" || user?.role === "manager";
+  const canManage = !!user;
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);

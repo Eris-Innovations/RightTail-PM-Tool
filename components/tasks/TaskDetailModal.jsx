@@ -161,7 +161,8 @@ function HistoryRow({ entry }) {
 
 export default function TaskDetailModal({ open, onClose, taskId }) {
   const { user } = useAuth();
-  const isManager = user?.role === "admin" || user?.role === "manager";
+  // Assignee management is open to every signed-in user.
+  const isManager = !!user;
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);

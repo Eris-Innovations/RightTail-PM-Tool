@@ -7,7 +7,7 @@
 // membership queries don't need a UNION).
 
 import { sql } from "@/lib/db";
-import { requireUser, requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { generateTeamId } from "@/lib/utils/ids";
 

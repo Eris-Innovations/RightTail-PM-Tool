@@ -247,7 +247,7 @@ function MilestoneRow({
 
 export default function ProjectDetailModal({ open, onClose, projectId }) {
   const { user } = useAuth();
-  const canEdit = user?.role === "admin" || user?.role === "manager";
+  const canEdit = !!user;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);

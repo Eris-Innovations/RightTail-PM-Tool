@@ -8,7 +8,7 @@
 // lib/auth/resolveAppUser.js.
 
 import { sql } from "@/lib/db";
-import { requireUser, requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { generateUserId } from "@/lib/utils/ids";
 import {

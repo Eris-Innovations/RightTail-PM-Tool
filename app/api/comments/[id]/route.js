@@ -1,5 +1,5 @@
-// PATCH  /api/comments/:id — edit (author or admin)
-// DELETE /api/comments/:id — soft-delete (author, manager, or admin)
+// PATCH  /api/comments/:id — edit (any signed-in user)
+// DELETE /api/comments/:id — soft-delete (any signed-in user)
 
 import { sql } from "@/lib/db";
 import { requireUser } from "@/lib/auth/requireUser";
@@ -46,17 +46,6 @@ export async function PATCH(request, { params }) {
       return Response.json(
         { error: "Cannot edit a deleted comment." },
         { status: 409 }
-      );
-    }
-    // Authors can edit their own; admins can edit anyone's. Managers
-    // *cannot* (matches the proposal's "Edit Comments" feature being a
-    // personal action, not a moderation tool).
-    const isAuthor = existing.author_id === auth.user.id;
-    const isAdmin = auth.user.role === "admin";
-    if (!isAuthor && !isAdmin) {
-      return Response.json(
-        { error: "Only the author or an admin can edit a comment." },
-        { status: 403 }
       );
     }
     if (existing.body === nextBody) {
@@ -157,19 +146,6 @@ export async function DELETE(request, { params }) {
       return Response.json(
         { error: "Comment is already deleted." },
         { status: 409 }
-      );
-    }
-    // Authors + admins + managers (moderation) can delete.
-    const isAuthor = existing.author_id === auth.user.id;
-    const isPrivileged =
-      auth.user.role === "admin" || auth.user.role === "manager";
-    if (!isAuthor && !isPrivileged) {
-      return Response.json(
-        {
-          error:
-            "Only the author, a manager, or an admin can delete a comment.",
-        },
-        { status: 403 }
       );
     }
     await sql`

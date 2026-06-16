@@ -1,9 +1,9 @@
-// GET    /api/users/:id — members can read their own row; admins anyone's
-// PATCH  /api/users/:id — admin-only general update
-// DELETE /api/users/:id — admin-only
+// GET    /api/users/:id — any signed-in user (matches the open list endpoint)
+// PATCH  /api/users/:id — any signed-in user (last-admin guard still applies)
+// DELETE /api/users/:id — any signed-in user (can't delete self or the last admin)
 
 import { sql } from "@/lib/db";
-import { requireUser, requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { USER_PUBLIC_COLUMNS, validateUserPayload } from "@/lib/validators/users";
 
@@ -14,10 +14,6 @@ export async function GET(request, { params }) {
   if (auth instanceof Response) return auth;
   const { id: idParam } = await params;
   const id = String(idParam);
-
-  if (auth.user.role !== "admin" && auth.user.id !== id) {
-    return Response.json({ error: "Forbidden." }, { status: 403 });
-  }
 
   try {
     const [user] = await sql.unsafe(
@@ -161,7 +157,7 @@ export async function PATCH(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
-  const auth = await requireRole(request, "admin");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
   const { id: idParam } = await params;
   const id = String(idParam);

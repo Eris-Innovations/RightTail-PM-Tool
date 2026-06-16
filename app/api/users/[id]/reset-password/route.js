@@ -1,13 +1,13 @@
 // POST /api/users/:id/reset-password
 //
-// Admin-triggered password reset. Hands off to Supabase Auth's own
-// resetPasswordForEmail flow — Supabase mails the user a one-time link
-// that lets them set a new password. We don't issue or store the
-// token ourselves anymore (Supabase does, in its `auth.flow_state`
-// table).
+// Any signed-in user can trigger a password reset. Hands off to
+// Supabase Auth's own resetPasswordForEmail flow — Supabase mails the
+// user a one-time link that lets them set a new password. We don't
+// issue or store the token ourselves anymore (Supabase does, in its
+// `auth.flow_state` table).
 
 import { sql } from "@/lib/db";
-import { requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { createClient } from "@supabase/supabase-js";
 
@@ -17,7 +17,7 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const SUPABASE_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 export async function POST(request, { params }) {
-  const auth = await requireRole(request, "admin");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
   const { id: idParam } = await params;
   const id = String(idParam);

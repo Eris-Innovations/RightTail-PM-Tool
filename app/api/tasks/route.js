@@ -2,7 +2,7 @@
 // POST /api/tasks  — create (admin/manager)
 
 import { sql } from "@/lib/db";
-import { requireUser, requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { notify, NOTIFICATION_TYPES } from "@/lib/services/notifications";
 import { generateTaskId } from "@/lib/utils/ids";

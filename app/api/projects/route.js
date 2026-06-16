@@ -2,7 +2,7 @@
 // POST /api/projects   — create (admin/manager)
 
 import { sql } from "@/lib/db";
-import { requireUser, requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { generateProjectId } from "@/lib/utils/ids";
 import {

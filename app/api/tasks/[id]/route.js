@@ -1,14 +1,12 @@
 // GET    /api/tasks/:id  — detail bundle (task + assignees + history + activity)
-// PATCH  /api/tasks/:id  — partial update (admin/manager — or assignee for
-//                          status/actual_hours only)
-// DELETE /api/tasks/:id  — admin/manager
+// PATCH  /api/tasks/:id  — partial update (any signed-in user)
+// DELETE /api/tasks/:id  — any signed-in user
 
 import { sql } from "@/lib/db";
-import { requireUser, requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { notify, NOTIFICATION_TYPES } from "@/lib/services/notifications";
 import {
-  ASSIGNEE_EDITABLE_FIELDS,
   TASK_SELECT_COLUMNS,
   TASK_FROM_CLAUSE,
   validateTaskInput,
@@ -110,37 +108,10 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    const isManager = auth.user.role === "admin" || auth.user.role === "manager";
-    const isAssignee = existing.assignee_id === auth.user.id;
-    if (!isManager && !isAssignee) {
-      return Response.json(
-        {
-          error:
-            "Only admins, managers, or the task's assignee can update this task.",
-        },
-        { status: 403 }
-      );
-    }
-
     const body = await request.json().catch(() => ({}));
     const { errors, values } = validateTaskInput(body ?? {}, "update");
     if (errors.length) {
       return Response.json({ error: errors[0], errors }, { status: 400 });
-    }
-
-    // Non-managers may only flip status / actual_hours on their own task.
-    if (!isManager) {
-      const forbidden = Object.keys(values).filter(
-        (f) => !ASSIGNEE_EDITABLE_FIELDS.has(f)
-      );
-      if (forbidden.length) {
-        return Response.json(
-          {
-            error: `Members can only update status or actual_hours (not: ${forbidden.join(", ")}).`,
-          },
-          { status: 403 }
-        );
-      }
     }
 
     if (values.project_id && values.project_id !== existing.project_id) {

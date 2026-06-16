@@ -69,10 +69,9 @@ export default function Users() {
   const [roleError, setRoleError] = useState(null);
 
   const { user: currentUser } = useAuth();
-  // Open user CRUD to any signed-in account. We still keep `isAdmin`
-  // for the truly admin-only operations (role change, hard delete,
-  // password reset) because those are privilege-escalation territory.
-  const isAdmin = currentUser?.role === "admin";
+  // All user CRUD (including role changes, password reset, hard delete)
+  // is open to any signed-in account. The backend still enforces the
+  // last-admin and self-delete guards so the workspace can't be bricked.
   const canCreate = !!currentUser;
   const canEdit = !!currentUser;
 
@@ -381,12 +380,13 @@ export default function Users() {
           ))}
         </div>
 
-        {isAdmin && (
+        {canEdit && (
           <div className="flex items-start gap-2 px-3 py-2 rounded-md border border-secondary bg-secondary/30 text-xs text-secondary-foreground">
             <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" strokeWidth={2.4} />
             <span>
-              You're signed in as an admin — use the actions menu (⋯) to edit,
-              activate, deactivate, reset passwords, or delete users.
+              Use the actions menu (⋯) to edit, activate, deactivate, reset
+              passwords, or delete users. The last admin can't be demoted or
+              removed, and you can't delete yourself.
             </span>
           </div>
         )}
@@ -483,7 +483,7 @@ export default function Users() {
                           {u.email}
                         </td>
                         <td className="px-4 py-3">
-                          {isAdmin ? (
+                          {canEdit ? (
                             <div className="flex items-center gap-2">
                               <select
                                 value={u.role}
@@ -558,7 +558,7 @@ export default function Users() {
                                 icon: Pencil,
                                 onClick: () => setEditTarget(u),
                               },
-                              isAdmin && {
+                              canEdit && {
                                 label: "Reset password",
                                 icon: KeyRound,
                                 onClick: () => setResetTarget(u),
@@ -578,7 +578,7 @@ export default function Users() {
                                       icon: UserCheck,
                                       onClick: () => setActivateTarget(u),
                                     }),
-                              isAdmin && {
+                              canEdit && {
                                 label: isSelf
                                   ? "Delete (not allowed)"
                                   : "Delete user",

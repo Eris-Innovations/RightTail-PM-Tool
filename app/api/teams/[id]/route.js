@@ -4,7 +4,7 @@
 // DELETE /api/teams/:id — admin
 
 import { sql } from "@/lib/db";
-import { requireUser, requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { TEAM_LIST_COLUMNS, validateTeamPayload } from "../route";
 

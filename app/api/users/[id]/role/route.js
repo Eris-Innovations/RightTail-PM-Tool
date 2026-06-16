@@ -1,15 +1,15 @@
-// PATCH /api/users/:id/role — admin-only role change. Last-admin guard
-// keeps at least one admin in the workspace at all times.
+// PATCH /api/users/:id/role — any signed-in user can change roles.
+// Last-admin guard keeps at least one admin in the workspace at all times.
 
 import { sql } from "@/lib/db";
-import { requireRole } from "@/lib/auth/requireUser";
+import { requireUser } from "@/lib/auth/requireUser";
 import { logActivity, ENTITY_TYPES } from "@/lib/services/activityLog";
 import { USER_ROLES } from "@/lib/validators/users";
 
 export const dynamic = "force-dynamic";
 
 export async function PATCH(request, { params }) {
-  const auth = await requireRole(request, "admin");
+  const auth = await requireUser(request);
   if (auth instanceof Response) return auth;
   const { id: idParam } = await params;
   const targetId = String(idParam ?? "");

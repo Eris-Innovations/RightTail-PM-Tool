@@ -141,11 +141,8 @@ function CommentRow({ comment, currentUser, onEdit, onDelete, onShowHistory }) {
   const [draft, setDraft] = useState(comment.body ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const isAuthor = comment.author_id === currentUser?.id;
-  const isAdmin = currentUser?.role === "admin";
-  const isPrivileged = isAdmin || currentUser?.role === "manager";
-  const canEdit = !comment.is_deleted && (isAuthor || isAdmin);
-  const canDelete = !comment.is_deleted && (isAuthor || isPrivileged);
+  const canEdit = !comment.is_deleted && !!currentUser;
+  const canDelete = !comment.is_deleted && !!currentUser;
   // Edited rows show a history affordance even to non-authors so reviewers
   // can audit what changed.
   const hasHistory = !!comment.edited_at;
